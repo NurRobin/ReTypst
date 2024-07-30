@@ -16,24 +16,34 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
 
   useEffect(() => {
     const createProject = async () => {
-      await fetch('/api/typst/create', {
+      const response = await fetch('/api/typst/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ projectId: id }),
+        body: JSON.stringify({ projectId: id, fileName: 'main', type: 'typ' }),
       });
+
+      if (!response.ok) {
+        console.error('Failed to create project:', response.statusText);
+      }
     };
 
     createProject();
 
     const socketInstance = io();
     setSocket(socketInstance);
+    console.log('Socket connection established');
 
     socketInstance.emit('join-room', id);
 
     socketInstance.on('update-file', (newContent: string) => {
       setContent(newContent);
+    });
+
+    socketInstance.on('file-saved', () => {
+      console.log('File saved event received');
+      setPdfSrc(`/api/typst/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
     });
 
     return () => {
@@ -83,13 +93,14 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   };
 
   const saveFile = async () => {
-    await fetch('/api/typst/save', {
+    const saveResponse = await fetch('/api/typst/save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ projectId: id, fileName: 'main', content: content }),
     });
+    console.log('Save response:', await saveResponse.json());
 
     // Trigger compilation
     const compileResponse = await fetch('/api/typst/compile', {
@@ -101,22 +112,29 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
     });
 
     if (compileResponse.ok) {
+      console.log('Compile response: OK');
       // Update the PDF src to force reload
       setPdfSrc(`/api/typst/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
+      if (socket) {
+        console.log('Emitting file-saved event');
+        socket.emit('file-saved');
+      }
+    } else {
+      console.error('Compile response error:', compileResponse.statusText);
     }
   };
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className='editor'>
       <FileExplorer projectId={id} />
       <textarea
         value={content}
         onChange={handleChange}
-        style={{ width: '50%', height: '100vh' }}
+        className='editor-textarea'
       />
       <iframe
         src={pdfSrc}
-        style={{ width: '50%', height: '100vh' }}
+        className='editor-pdf'
       />
     </div>
   );

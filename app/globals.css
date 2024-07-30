@@ -31,3 +31,21 @@ body {
     text-wrap: balance;
   }
 }
+
+.editor {
+  display: flex;
+}
+
+.editor-textarea {
+  color: var(--foreground-rgb);
+  background-color: rgb(var(--background-start-rgb));
+  width: 50%;
+  height: 100vh;
+}
+
+.editor-pdf {
+  color: var(--foreground-rgb);
+  background-color: rgb(var(--background-start-rgb));
+  width: 50%;
+  height: 100vh;
+}

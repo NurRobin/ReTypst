@@ -13,13 +13,19 @@ export async function POST(req: NextRequest) {
       await fs.access(projectPath);
     } catch {
       await fs.mkdir(projectPath, { recursive: true });
-      await fs.writeFile(path.join(projectPath, 'main.typ'), '', 'utf-8');
     }
 
     if (type === 'project') {
       // Create a new directory with the given name -> fileName
       const newProjectPath = path.join(process.cwd(), 'documents', fileName);
-      await fs.mkdir(newProjectPath, { recursive: true });
+
+      // Check if the directory already exists
+      try {
+        await fs.access(newProjectPath);
+        return new NextResponse(JSON.stringify({ error: 'Directory already exists' }), { status: 400 });
+      } catch {
+        await fs.mkdir(newProjectPath, { recursive: true });
+      }
 
       return new NextResponse(JSON.stringify({ success: true }), {
         headers: {
@@ -31,7 +37,14 @@ export async function POST(req: NextRequest) {
     if (type === 'directory') {
       // Create a new directory with the given name -> fileName
       const directoryPath = path.join(projectPath, fileName);
-      await fs.mkdir(directoryPath, { recursive: true });
+
+      // Check if the directory already exists
+      try {
+        await fs.access(directoryPath);
+        return new NextResponse(JSON.stringify({ error: 'Directory already exists' }), { status: 400 });
+      } catch {
+        await fs.mkdir(directoryPath, { recursive: true });
+      }
 
       return new NextResponse(JSON.stringify({ success: true }), {
         headers: {
@@ -41,7 +54,14 @@ export async function POST(req: NextRequest) {
     } else {
       // Create a new file with the given name and type -> fileName.type
       const filePath = path.join(projectPath, `${fileName}.${type}`);
-      await fs.writeFile(filePath, '', 'utf-8');
+
+      // Check if the file already exists
+      try {
+        await fs.access(filePath);
+        return new NextResponse(JSON.stringify({ error: 'File already exists' }), { status: 400 });
+      } catch {
+        await fs.writeFile(filePath, '', 'utf-8');
+      }
 
       return new NextResponse(JSON.stringify({ success: true }), {
         headers: {

@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import io, { Socket } from 'socket.io-client';
+import FileExplorer from './FileExplorer';
 
 interface EditorPageProps {
-  params: {
-    id: string;
-  };
+  params: { id: string };
 }
 
 const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
@@ -16,6 +15,18 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   const [pdfSrc, setPdfSrc] = useState<string>('');
 
   useEffect(() => {
+    const createProject = async () => {
+      await fetch('/api/typst/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ projectId: id }),
+      });
+    };
+
+    createProject();
+
     const socketInstance = io();
     setSocket(socketInstance);
 
@@ -37,13 +48,13 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ fileName: id, type: 'typ' }),
+        body: JSON.stringify({ projectId: id, fileName: 'main', type: 'typ' }),
       });
       const data = await response.json();
       setContent(data.content);
 
       // Set initial PDF src
-      setPdfSrc(`/api/typst/fetch?fileName=${id}&type=pdf&timestamp=${new Date().getTime()}`);
+      setPdfSrc(`/api/typst/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
     };
 
     fetchData();
@@ -77,7 +88,7 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ fileName: id, content: content }),
+      body: JSON.stringify({ projectId: id, fileName: 'main', content: content }),
     });
 
     // Trigger compilation
@@ -86,17 +97,18 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ fileName: id }),
+      body: JSON.stringify({ projectId: id, fileName: 'main' }),
     });
 
     if (compileResponse.ok) {
       // Update the PDF src to force reload
-      setPdfSrc(`/api/typst/fetch?fileName=${id}&type=pdf&timestamp=${new Date().getTime()}`);
+      setPdfSrc(`/api/typst/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
     }
   };
 
   return (
     <div style={{ display: 'flex' }}>
+      <FileExplorer projectId={id} />
       <textarea
         value={content}
         onChange={handleChange}

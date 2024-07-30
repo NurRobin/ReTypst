@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ReTypst
+
+ReTypst is a web-based Typst editor designed for real-time editing and viewing of Typst documents. It provides a collaborative environment where multiple users can work on Typst documents simultaneously.
+
+## Key Features
+
+- **Real-time Collaboration**: Multiple users can edit the same document simultaneously with changes reflected in real-time.
+- **Typst Document Editing**: Full-featured editor for creating and modifying Typst documents.
+- **PDF Generation**: Compile Typst documents into PDF format for easy sharing and printing.
+- **Document Management**: Save and load Typst documents from the server.
+- **Asset Handling**: Manage assets such as images and bibliographies within your documents.
+
+## API Endpoints
+
+- **Fetch Document**: `/api/typst/fetch`
+- **Save Document**: `/api/typst/save`
+- **Compile Document**: `/api/typst/compile`
 
 ## Getting Started
 
-First, run the development server:
+To get started with ReTypst, follow these steps:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Run the Development Server**:
+   ```bash
+   npm run dev
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Open the Application**:
+   Open [http://localhost:3000](http://localhost:3000) in your browser to start using ReTypst.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Project Structure
+
+- **app/**: Contains the main application files.
+  - **api/**: API routes for fetching, saving, and compiling Typst documents.
+  - **editor/**: Editor components and pages.
+  - `layout.tsx`: Layout component for the application.
+  - `page.tsx`: Main page component.
+- **documents/**: Contains Typst documents and related assets.
+  - `*.typ`: Typst document files.
+- **public/**: Public assets.
+- **.next/**: Next.js build output.
+- **.eslintrc.json**: ESLint configuration.
+- **next-env.d.ts**: TypeScript environment configuration.
+- **next.config.mjs**: Next.js configuration.
+- **postcss.config.mjs**: PostCSS configuration.
+- **tailwind.config.ts**: Tailwind CSS configuration.
+- **tsconfig.json**: TypeScript configuration.
+- **package.json**: Project dependencies and scripts.
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+For more information about Typst and its capabilities, visit the [Typst documentation](https://typst.app/docs/).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Feel free to contribute to the project by submitting issues or pull requests on the [GitHub repository](https://github.com/your-repo/retypst).

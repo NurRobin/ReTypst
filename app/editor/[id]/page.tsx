@@ -3,10 +3,41 @@
 import { useEffect, useState } from 'react';
 import io, { Socket } from 'socket.io-client';
 import FileExplorer from './FileExplorer';
+import Toolbar from './Toolbar';
+import styled from 'styled-components';
 
 interface EditorPageProps {
   params: { id: string };
 }
+
+const EditorContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+`;
+
+const MainContent = styled.div`
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+`;
+
+const TextArea = styled.textarea`
+  flex: 1;
+  margin: 0;
+  padding: 10px;
+  border: none;
+  resize: none;
+  font-family: monospace;
+  font-size: 14px;
+`;
+
+const IFrame = styled.iframe`
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  border: none;
+`;
 
 const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   const { id } = params;
@@ -124,19 +155,27 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
     }
   };
 
+  const handleBack = () => {
+    // Implement navigation back to the main menu
+    console.log('Back button clicked');
+  };
+
   return (
-    <div className='editor'>
-      <FileExplorer projectId={id} />
-      <textarea
-        value={content}
-        onChange={handleChange}
-        className='editor-textarea'
-      />
-      <iframe
-        src={pdfSrc}
-        className='editor-pdf'
-      />
-    </div>
+    <EditorContainer>
+      <Toolbar onSave={saveFile} onBack={handleBack} />
+      <MainContent>
+        <FileExplorer projectId={id} />
+        <TextArea
+          value={content}
+          onChange={handleChange}
+          className='editor-textarea'
+        />
+        <IFrame
+          src={pdfSrc}
+          className='editor-pdf'
+        />
+      </MainContent>
+    </EditorContainer>
   );
 };
 

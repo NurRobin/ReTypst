@@ -16,14 +16,20 @@
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
+html {
   background: linear-gradient(
       to bottom,
       transparent,
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 100vh;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
 }
 
 @layer utilities {

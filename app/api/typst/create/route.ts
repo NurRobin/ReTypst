@@ -17,14 +17,15 @@ export async function POST(req: NextRequest) {
 
     if (type === 'project') {
       // Create a new directory with the given name -> fileName
-      const newProjectPath = path.join(process.cwd(), 'documents', fileName);
 
       // Check if the directory already exists
       try {
-        await fs.access(newProjectPath);
-        return new NextResponse(JSON.stringify({ error: 'Directory already exists' }), { status: 400 });
+        // Check for main.typ in the project directory
+        const newProjectPath = path.join(projectPath, fileName);
+        await fs.access(path.join(newProjectPath, 'main.typ'));
+        return new NextResponse(JSON.stringify({ error: 'Project already exists' }), { status: 400 });
       } catch {
-        await fs.mkdir(newProjectPath, { recursive: true });
+        await fs.writeFile(path.join(projectPath, 'main.typ'), '= New Project', 'utf-8');
       }
 
       return new NextResponse(JSON.stringify({ success: true }), {

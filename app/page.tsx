@@ -24,6 +24,27 @@ const LandingPage: React.FC = () => {
     fetchProjects();
   }, []);
 
+  const handleNewProject = async () => {
+    const projectName = prompt('Enter the name for the new project:');
+    if (!projectName) return;
+
+    const projects = await fetch('/api/typst/projects');
+    const data = await projects.json();
+
+    if (data.projects.find((project: Project) => project.id === projectName)) {
+      alert('Project name is already taken. Please choose another name.');
+    } else {
+      await fetch('/api/typst/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ projectId: projectName, type: 'project' }),
+      });
+      window.location.href = `/editor/${projectName}`;
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <h1>Projects</h1>
@@ -37,6 +58,9 @@ const LandingPage: React.FC = () => {
             </Link>
           </div>
         ))}
+        <div onClick={handleNewProject} style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '20px', width: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}>
+          <h2>+</h2>
+        </div>
       </div>
     </div>
   );

@@ -5,32 +5,59 @@ ReTypst is a web-based Typst editor designed for real-time editing and viewing o
 ## Key Features
 
 - **Real-time Collaboration**: Multiple users can edit the same document simultaneously with changes reflected in real-time.
+
 - **Typst Document Editing**: Full-featured editor for creating and modifying Typst documents.
+
 - **PDF Generation**: Compile Typst documents into PDF format for easy sharing and printing.
+
 - **Document Management**: Save and load Typst documents from the server.
+
 - **Asset Handling**: Manage assets such as images and bibliographies within your documents.
 
 ## API Endpoints
 
-- **Fetch Document**: `/api/typst/fetch`
-- **Save Document**: `/api/typst/save`
-- **Compile Document**: `/api/typst/compile`
+### Files
+
+- **Create File**: `/api/v1/files/create/file`
+
+- **Create Folder**: `/api/v1/files/create/folder`
+
+- **Fetch Files**: `/api/v1/files/fetch`
+
+- **Save File**: `/api/v1/files/save`
+
+### Projects
+
+- **Create Project**: `/api/v1/projects/create`
+
+- **Fetch Project Files**: `/api/v1/projects/files`
+
+- **List Projects**: `/api/v1/projects/list`
+
+### Typst
+
+- **Compile Typst File**: `/api/v1/typst/compile`
+
+- **Watch Typst File**: `/api/v1/typst/watch`
 
 ## Getting Started
 
 To get started with ReTypst, follow these steps:
 
 1. **Install Dependencies**:
+
    ```bash
    npm install
    ```
 
 2. **Run the Development Server**:
+
    ```bash
    npm run dev
    ```
 
 3. **Open the Application**:
+
    Open [http://localhost:3000](http://localhost:3000) in your browser to start using ReTypst.
 
 ## Project Structure
@@ -56,4 +83,4 @@ To get started with ReTypst, follow these steps:
 
 For more information about Typst and its capabilities, visit the [Typst documentation](https://typst.app/docs/).
 
-Feel free to contribute to the project by submitting issues or pull requests on the [GitHub repository](https://github.com/your-repo/retypst).
+Feel free to contribute to the project by submitting issues or pull requests on the [GitHub repository](https://github.com/NurRobin/retypst).

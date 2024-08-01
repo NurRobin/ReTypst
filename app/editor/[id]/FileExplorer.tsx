@@ -4,6 +4,7 @@ import { FaFile, FaFolder, FaFolderOpen } from 'react-icons/fa';
 
 interface FileExplorerProps {
   projectId: string;
+  onFileSelect: (filePath: string) => void; // Add this line
 }
 
 interface FileStructure {
@@ -37,7 +38,7 @@ const FileName = styled.span`
   margin-left: 5px;
 `;
 
-const FileExplorer: React.FC<FileExplorerProps> = ({ projectId }) => {
+const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) => { // Update this line
   const [files, setFiles] = useState<FileStructure>({});
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
 
@@ -73,6 +74,10 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId }) => {
     });
   };
 
+  const handleFileClick = (filePath: string) => {
+    onFileSelect(filePath); // Call the callback with the selected file path
+  };
+
   const renderFiles = (fileStructure: FileStructure, parentKey: string = '', level: number = 0) => {
     const entries = Object.entries(fileStructure);
     const folders = entries.filter(([_, value]) => typeof value !== 'string').sort();
@@ -85,7 +90,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId }) => {
           const fullPath = parentKey ? `${parentKey}/${key}` : key;
           const isOpen = openFolders.has(fullPath);
           return (
-            <FileItem key={fullPath} onClick={(e) => typeof value !== 'string' && toggleFolder(e, fullPath)}>
+            <FileItem key={fullPath} onClick={(e) => typeof value !== 'string' ? toggleFolder(e, fullPath) : handleFileClick(fullPath)}>
               {typeof value === 'string' ? (
                 <>
                   <FaFile />

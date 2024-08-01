@@ -202,11 +202,26 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
     window.history.back();
   };
 
+  const handleFileSelect = async (filePath: string) => {
+    const response = await fetch('/api/typst/fetch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ projectId: id, fileName: filePath, type: 'typ' }),
+    });
+    const data = await response.json();
+    setContent(data.content);
+
+    // Update the PDF src to force reload
+    setPdfSrc(`/api/typst/fetch?projectId=${id}&fileName=${filePath}&type=pdf&timestamp=${new Date().getTime()}`);
+  };
+
   return (
     <EditorContainer>
       <Toolbar onSave={saveFile} onBack={handleBack} />
       <MainContent>
-        <FileExplorer projectId={id} />
+        <FileExplorer projectId={id} onFileSelect={handleFileSelect} />
         <TextArea
           value={content}
           onChange={handleChange}

@@ -7,6 +7,11 @@ const execAsync = promisify(exec);
 
 export async function POST(req: NextRequest) {
   const { projectId, relativeFilePath } = await req.json();
+
+  if (!projectId || !relativeFilePath) {
+    return new NextResponse(JSON.stringify({ error: 'Missing projectId or relativeFilePath' }), { status: 400 });
+  }
+
   const filePath = path.join(process.cwd(), 'documents', projectId, relativeFilePath);
 
   try {

@@ -18,10 +18,10 @@ const Container = styled.div`
   padding: 10px;
 `;
 
-const FileList = styled.ul<{ level: number }>`
+const FileList = styled.ul<{ $level: number }>`
   list-style: none;
   padding-left: 20px;
-  border-left: ${({ level }) => (level > 0 ? `1px solid #ccc` : 'none')};
+  border-left: ${({ $level }) => ($level > 0 ? `1px solid #ccc` : 'none')};
   margin: 0;
   padding: 5px 0 5px 10px;
 `;
@@ -43,7 +43,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId }) => {
 
   useEffect(() => {
     const fetchFiles = async () => {
-      const response = await fetch(`/api/typst/files?projectId=${projectId}`);
+      const response = await fetch(`/api/v1/projects/files?projectId=${projectId}`);
       if (!response.ok) {
         console.error('Failed to fetch files');
         return;
@@ -80,7 +80,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId }) => {
     const sortedEntries = [...folders, ...files];
 
     return (
-      <FileList level={level}>
+      <FileList $level={level}>
         {sortedEntries.map(([key, value]) => {
           const fullPath = parentKey ? `${parentKey}/${key}` : key;
           const isOpen = openFolders.has(fullPath);

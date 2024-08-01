@@ -9,10 +9,10 @@ interface Project {
 
 const LandingPage: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
-
+  
   useEffect(() => {
     const fetchProjects = async () => {
-      const response = await fetch('/api/typst/projects');
+      const response = await fetch('/api/v1/projects/list');
       if (!response.ok) {
         console.error('Failed to fetch projects');
         return;
@@ -28,18 +28,15 @@ const LandingPage: React.FC = () => {
     const projectName = prompt('Enter the name for the new project:');
     if (!projectName) return;
 
-    const projects = await fetch('/api/typst/projects');
-    const data = await projects.json();
-
-    if (data.projects.find((project: Project) => project.id === projectName)) {
+    if (projects.find((project: Project) => project.id === projectName)) {
       alert('Project name is already taken. Please choose another name.');
     } else {
-      await fetch('/api/typst/create', {
+      await fetch('/api/v1/projects/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ projectId: projectName, type: 'project' }),
+        body: JSON.stringify({ projectId: projectName }),
       });
       window.location.href = `/editor/${projectName}`;
     }

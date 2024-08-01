@@ -10,6 +10,11 @@ interface EditorPageProps {
   params: { id: string };
 }
 
+interface Project {
+  id: string;
+  name: string;
+}
+
 const EditorContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -44,60 +49,97 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   const [content, setContent] = useState<string>('');
   const [socket, setSocket] = useState<Socket | null>(null);
   const [pdfSrc, setPdfSrc] = useState<string>('');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectListLoaded, setProjectListLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    const createProject = async () => {
-      const response = await fetch('/api/typst/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ projectId: id, fileName: 'main', type: 'typ' }),
-      });
-
-      if (!response.ok) {
-        console.error('Failed to create project:', response.statusText);
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch('/api/v1/projects/list');
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+        const data = await response.json();
+        setProjects(data.projects);
+        setProjectListLoaded(true);
+      } catch (error) {
+        console.error(error);
       }
     };
 
-    createProject();
+    fetchProjects();
+  }, []);
 
-    const socketInstance = io();
-    setSocket(socketInstance);
-    console.log('Socket connection established');
+  useEffect(() => {
+    const createProjectIfNotPresent = async () => {
+      if (projectListLoaded && !projects.some((project: Project) => project.id === id)) {
+        try {
+          const response = await fetch('/api/v1/projects/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId: id }),
+          });
 
-    socketInstance.emit('join-room', id);
-
-    socketInstance.on('update-file', (newContent: string) => {
-      setContent(newContent);
-    });
-
-    socketInstance.on('file-saved', () => {
-      console.log('File saved event received');
-      setPdfSrc(`/api/typst/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
-    });
-
-    return () => {
-      socketInstance.disconnect();
+          if (!response.ok) {
+            throw new Error('Failed to create project');
+          }
+        } catch (error) {
+          console.error('Error creating project:', error);
+        }
+      }
     };
-  }, [id]);
+
+    if (projectListLoaded) {
+      createProjectIfNotPresent();
+    }
+    
+    const initializeSocket = async () => {
+      await createProjectIfNotPresent();
+
+      const socketInstance = io();
+      setSocket(socketInstance);
+
+      socketInstance.emit('join-room', id);
+
+      socketInstance.on('update-file', (newContent: string) => {
+        setContent(newContent);
+      });
+
+      socketInstance.on('file-saved', () => {
+        setPdfSrc(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
+      });
+
+      return () => {
+        socketInstance.disconnect();
+      };
+    };
+
+    initializeSocket();
+  }, [id, projectListLoaded, projects]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch('/api/typst/fetch', {
-        method: 'POST',
+      const typResponse = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=typ`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ projectId: id, fileName: 'main', type: 'typ' }),
       });
-      const data = await response.json();
-      setContent(data.content);
-
+      const typData = await typResponse.text();
+      setContent(typData);
+  
       // Set initial PDF src
-      setPdfSrc(`/api/typst/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
+      const pdfResponse = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=pdf`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const pdfBlob = await pdfResponse.blob();
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      setPdfSrc(pdfUrl);
     };
-
+  
     fetchData();
   }, [id]);
 
@@ -124,40 +166,40 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   };
 
   const saveFile = async () => {
-    const saveResponse = await fetch('/api/typst/save', {
-      method: 'POST',
+    const saveResponse = await fetch('/api/v1/files/save', {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ projectId: id, fileName: 'main', content: content }),
+      body: JSON.stringify({ projectId: id, relativeFilePath: './main.typ', content: content }),
     });
-    console.log('Save response:', await saveResponse.json());
-
-    // Trigger compilation
-    const compileResponse = await fetch('/api/typst/compile', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ projectId: id, fileName: 'main' }),
-    });
-
-    if (compileResponse.ok) {
-      console.log('Compile response: OK');
-      // Update the PDF src to force reload
-      setPdfSrc(`/api/typst/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
-      if (socket) {
-        console.log('Emitting file-saved event');
-        socket.emit('file-saved');
+  
+    if (saveResponse.ok) {
+      // Trigger compilation
+      const compileResponse = await fetch('/api/v1/typst/compile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ projectId: id, relativeFilePath: './main.typ' }), // Include relativeFilePath
+      });
+  
+      if (compileResponse.ok) {
+        // Update the PDF src to force reload
+        setPdfSrc(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
+        if (socket) {
+          socket.emit('file-saved');
+        }
+      } else {
+        console.error('Compile response error:', compileResponse.statusText);
       }
     } else {
-      console.error('Compile response error:', compileResponse.statusText);
+      console.error('Save response error:', saveResponse.statusText);
     }
   };
 
   const handleBack = () => {
-    // Implement navigation back to the main menu
-    console.log('Back button clicked');
+    window.history.back();
   };
 
   return (

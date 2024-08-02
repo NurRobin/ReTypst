@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FaFile, FaFolder, FaFolderOpen } from 'react-icons/fa';
 import './FileExplorer.css';
+import ContextMenu from './ContextMenu';
 
 interface FileExplorerProps {
   projectId: string;
@@ -14,7 +15,11 @@ interface FileStructure {
 const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) => {
   const [files, setFiles] = useState<FileStructure>({});
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
-
+  
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; isVisible: boolean; target: string | null }>({ x: 0, y: 0, isVisible: false, target: null });
+  
+  const [isFilesFetched, setIsFilesFetched] = useState(false);
+  
   const fetchFiles = async () => {
     const response = await fetch(`/api/v1/projects/files?projectId=${projectId}`);
     if (!response.ok) {
@@ -29,12 +34,16 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
       console.error('Failed to parse JSON', error);
     }
   };
-
+  
   useEffect(() => {
-    fetchFiles();
-  }, [projectId]);
+    if (!isFilesFetched) {
+      fetchFiles();
+      setIsFilesFetched(true);
+    }
+  }, [projectId, isFilesFetched]);
 
   const toggleFolder = (event: React.MouseEvent, folder: string) => {
+    // Prevent event bubbling to parent elements
     event.stopPropagation();
     setOpenFolders((prev) => {
       const newSet = new Set(prev);
@@ -48,8 +57,8 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
   };
 
   const handleFileClick = (event: React.MouseEvent, filePath: string) => {
-    event.stopPropagation(); // Prevent the folder from closing
-    onFileSelect(filePath); // Call the callback with the selected file path
+    event.stopPropagation();
+    onFileSelect(filePath);
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,10 +87,69 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
         return;
       }
 
-      await fetchFiles(); // Refresh the file explorer after a successful upload
+      await fetchFiles();
     };
 
     reader.readAsText(file);
+  };
+
+  const handleContextMenu = (event: React.MouseEvent, target: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setContextMenu({ x: event.clientX, y: event.clientY, isVisible: true, target });
+  };
+
+  const handleContextMenuClose = () => {
+    setContextMenu(prevContextMenu => ({ ...prevContextMenu, isVisible: false }));
+  };
+
+  const handleOpen = () => {
+    if (contextMenu.target) {
+      onFileSelect(contextMenu.target);
+    }
+    handleContextMenuClose();
+  };
+
+  const handleDelete = async () => {
+    if (contextMenu.target) {
+      await fetch('/api/v1/files/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId,
+          relativePath: contextMenu.target,
+        }),
+      });
+    }
+    handleContextMenuClose();
+    await fetchFiles();
+  };
+
+  const handleRename = async () => {
+    const newName = prompt('Enter the new name:', contextMenu.target?.split('/').pop());
+    if (!newName || !contextMenu.target || typeof newName !== 'string') return;
+  
+    const response = await fetch('/api/v1/files/rename', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId,
+        oldPath: contextMenu.target,
+        newPath: contextMenu.target.replace(/[^/]+$/, newName),
+      }),
+    });
+  
+    if (!response.ok) {
+      console.error('Failed to rename file');
+      return;
+    }
+  
+    handleContextMenuClose();
+    await fetchFiles();
   };
 
   const renderFiles = (fileStructure: FileStructure, parentKey: string = '', level: number = 0) => {
@@ -95,8 +163,20 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
         {sortedEntries.map(([key, value]) => {
           const fullPath = parentKey ? `${parentKey}/${key}` : key;
           const isOpen = openFolders.has(fullPath);
+          const handleClick = (e: React.MouseEvent, fullPath: string) => {
+            if (typeof value !== 'string') {
+              toggleFolder(e, fullPath);
+            } else {
+              handleFileClick(e, fullPath);
+            }
+          };
+          
+          const handleContextMenuClick = (e: React.MouseEvent, fullPath: string) => {
+            handleContextMenu(e, fullPath);
+          };
+          
           return (
-            <li key={fullPath} className="file-item" onClick={(e) => typeof value !== 'string' ? toggleFolder(e, fullPath) : handleFileClick(e, fullPath)}>
+            <li key={fullPath} className="file-item" onClick={(e) => handleClick(e, fullPath)} onContextMenu={(e) => handleContextMenuClick(e, fullPath)}>
               {typeof value === 'string' ? (
                 <>
                   <FaFile className="file-icon" />
@@ -130,6 +210,15 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
         />
       </button>
       {renderFiles(files)}
+      <ContextMenu
+        x={contextMenu.x}
+        y={contextMenu.y}
+        isVisible={contextMenu.isVisible}
+        onClose={handleContextMenuClose}
+        onOpen={handleOpen}
+        onDelete={handleDelete}
+        onRename={handleRename}
+      />
     </div>
   );
 };

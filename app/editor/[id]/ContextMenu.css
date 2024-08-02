@@ -1,0 +1,24 @@
+.context-menu {
+    position: absolute;
+    background-color: var(--root-background-color, white);
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    /* Rounded edges */
+    border-radius: 4px;
+}
+
+.context-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.context-menu li {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.context-menu li:hover {
+    background-color: rgba(0, 0, 0, 0.3)
+}

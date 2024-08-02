@@ -81,11 +81,10 @@
   background-color: #0056b3;
 }
 
-/* New file button styles */
 .new-file-button {
   margin: 10px 0;
   padding: 8px 12px;
-  background-color: #28a745;
+  background-color: #208638;
   color: white;
   border: none;
   border-radius: 4px;
@@ -94,9 +93,39 @@
 }
 
 .new-file-button:hover {
-  background-color: #218838;
+  background-color: #1a6b2b;
 }
 
 .new-file-button .file-icon {
-  margin-right: 5px;
+  margin: 0 5px;
+}
+
+.new-folder-button {
+  margin: 10px 0;
+  padding: 8px 12px;
+  background-color: #208638;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.new-folder-button:hover {
+  background-color: #1a6b2b;
+}
+
+.new-folder-button .folder-icon {
+  margin: 0 5px;
+}
+
+.buttons-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.create-buttons-container {
+  display: flex;
+  justify-content: space-evenly;
 }

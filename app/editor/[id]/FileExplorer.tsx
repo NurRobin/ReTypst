@@ -20,10 +20,12 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
   const [isFilesFetched, setIsFilesFetched] = useState(false);
   const [editingFile, setEditingFile] = useState<string | null>(null);
   const [newFileName, setNewFileName] = useState<string>('');
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false); // State for delete confirmation dialog
-  const [isNewFileModalOpen, setIsNewFileModalOpen] = useState(false); // State for new file modal
-  const [newFilePath, setNewFilePath] = useState(''); // State for the new file path
-  const [draggedItem, setDraggedItem] = useState<string | null>(null); // State for the dragged item
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isNewFileModalOpen, setIsNewFileModalOpen] = useState(false);
+  const [newFilePath, setNewFilePath] = useState('');
+  const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
+  const [newFolderPath, setNewFolderPath] = useState('');
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
 
   const fetchFiles = async () => {
     const response = await fetch(`/api/v1/projects/files?projectId=${projectId}`);
@@ -209,6 +211,30 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
     await fetchFiles();
   };
 
+  const handleNewFolder = async () => {
+    if (!newFolderPath) return;
+
+    const response = await fetch('/api/v1/files/create/folder', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId,
+        relativePath: newFolderPath,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to create new folder');
+      return;
+    }
+
+    setNewFolderPath('');
+    setIsNewFolderModalOpen(false);
+    await fetchFiles();
+  };
+
   const handleDragStart = (event: React.DragEvent, filePath: string) => {
     event.stopPropagation();
     setDraggedItem(filePath);
@@ -348,7 +374,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
     <div className="container" onDragOver={handleDragOver} onDrop={handleRootDrop}>
       <h2>Files</h2>
       <div className="divider" />
-      <div className="buttons">
+      <div className="buttons-container">
         <button className="upload-button">
           <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
             Upload File
@@ -360,9 +386,14 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
             onChange={handleFileUpload}
           />
         </button>
-        <button className="new-file-button" onClick={() => setIsNewFileModalOpen(true)}>
-          <FaFile className="file-icon" />
-        </button>
+        <div className="create-buttons-container">
+          <button className="new-file-button" onClick={() => setIsNewFileModalOpen(true)}>
+            <FaFile className="file-icon" />
+          </button>
+          <button className="new-folder-button" onClick={() => setIsNewFolderModalOpen(true)}>
+            <FaFolder className="folder-icon" />
+          </button>
+        </div>
       </div>
       {renderFiles(files)}
       <ContextMenu
@@ -392,6 +423,23 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
                 type="text"
                 value={newFilePath}
                 onChange={(e) => setNewFilePath(e.target.value)}
+              />
+            </label>
+          </>
+        }
+      />
+      <Modal
+        isOpen={isNewFolderModalOpen}
+        onClose={() => setIsNewFolderModalOpen(false)}
+        onConfirm={handleNewFolder}
+        message={
+          <>
+            <label>
+              Enter new folder name:
+              <input
+                type="text"
+                value={newFolderPath}
+                onChange={(e) => setNewFolderPath(e.target.value)}
               />
             </label>
           </>

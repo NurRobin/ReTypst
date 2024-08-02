@@ -23,6 +23,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false); // State for delete confirmation dialog
   const [isNewFileModalOpen, setIsNewFileModalOpen] = useState(false); // State for new file modal
   const [newFilePath, setNewFilePath] = useState(''); // State for the new file path
+  const [draggedItem, setDraggedItem] = useState<string | null>(null); // State for the dragged item
 
   const fetchFiles = async () => {
     const response = await fetch(`/api/v1/projects/files?projectId=${projectId}`);
@@ -208,6 +209,71 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
     await fetchFiles();
   };
 
+  const handleDragStart = (event: React.DragEvent, filePath: string) => {
+    event.stopPropagation();
+    setDraggedItem(filePath);
+  };
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+  };
+
+  const handleDrop = async (event: React.DragEvent, newFolder: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!draggedItem) return;
+
+    const newFilePath = `${newFolder}/${draggedItem.split('/').pop()}`;
+    const response = await fetch('/api/v1/files/move', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId,
+        oldPath: draggedItem,
+        newPath: newFilePath,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to move file');
+      return;
+    }
+
+    setDraggedItem(null);
+    await fetchFiles();
+  };
+
+  const handleRootDrop = async (event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!draggedItem) return;
+
+    const newFilePath = draggedItem.split('/').pop() || '';
+    const response = await fetch('/api/v1/files/move', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId,
+        oldPath: draggedItem,
+        newPath: newFilePath,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to move file to root');
+      return;
+    }
+
+    setDraggedItem(null);
+    await fetchFiles();
+  };
+
   const renderFiles = (fileStructure: FileStructure, parentKey: string = '', level: number = 0) => {
     const entries = Object.entries(fileStructure || {});
     const folders = entries.filter(([_, value]) => typeof value !== 'string').sort();
@@ -237,7 +303,15 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
           };
 
           return (
-            <li key={fullPath} className="file-item" onClick={(e) => handleClick(e, fullPath)} onContextMenu={(e) => handleContextMenuClick(e, fullPath)} onDoubleClick={(e) => handleDoubleClick(e, fullPath)}>
+            <li key={fullPath}
+              className="file-item"
+              onClick={(e) => handleClick(e, fullPath)}
+              onContextMenu={(e) => handleContextMenuClick(e, fullPath)}
+              onDoubleClick={(e) => handleDoubleClick(e, fullPath)}
+              draggable
+              onDragStart={(e) => handleDragStart(e, fullPath)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, fullPath)}>
               {editingFile === fullPath ? (
                 <input
                   type="text"
@@ -271,7 +345,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
   };
 
   return (
-    <div className="container">
+    <div className="container" onDragOver={handleDragOver} onDrop={handleRootDrop}>
       <h2>Files</h2>
       <div className="divider" />
       <div className="buttons">

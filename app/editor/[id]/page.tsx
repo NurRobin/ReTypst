@@ -47,10 +47,12 @@ const IFrame = styled.iframe`
 const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   const { id } = params;
   const [content, setContent] = useState<string>('');
+  const [openFile, setOpenFile] = useState<string | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [pdfSrc, setPdfSrc] = useState<string>('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectListLoaded, setProjectListLoaded] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -166,15 +168,19 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   };
 
   const saveFile = async () => {
+    if (!openFile) {
+      return;
+    }
+    const savedFileType = openFile.split('.').pop();
     const saveResponse = await fetch('/api/v1/files/save', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ projectId: id, relativeFilePath: './main.typ', content: content }),
+      body: JSON.stringify({ projectId: id, relativeFilePath: openFile, content: content }),
     });
   
-    if (saveResponse.ok) {
+    if (saveResponse.ok && savedFileType === 'typ') {
       // Trigger compilation
       const compileResponse = await fetch('/api/v1/typst/compile', {
         method: 'POST',
@@ -203,19 +209,26 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   };
 
   const handleFileSelect = async (filePath: string) => {
-    const response = await fetch('/api/typst/fetch', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ projectId: id, fileName: filePath, type: 'typ' }),
-    });
-    const data = await response.json();
-    setContent(data.content);
-
-    // Update the PDF src to force reload
-    setPdfSrc(`/api/typst/fetch?projectId=${id}&fileName=${filePath}&type=pdf&timestamp=${new Date().getTime()}`);
-  };
+    setError(null);
+    const response = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=${filePath}`);
+    if (!response.ok) {
+      setError('Failed to fetch file');
+      return;
+    }
+    if (filePath.endsWith('.pdf')) {
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setPdfSrc(url);
+    } else {
+      try {
+        const text = await response.text();
+        setContent(text);
+        setOpenFile(filePath);
+      } catch (error) {
+        setError('Failed to parse file');
+      }
+    }
+};
 
   return (
     <EditorContainer>

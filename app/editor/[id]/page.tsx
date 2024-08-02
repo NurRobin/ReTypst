@@ -106,7 +106,7 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
       });
 
       socketInstance.on('file-saved', () => {
-        setPdfSrc(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
+        setPdfSrc(`/api/v1/files/fetch?projectId=${id}&fileName=main.pdf&timestamp=${new Date().getTime()}`);
       });
 
       return () => {
@@ -119,7 +119,7 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const typResponse = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=typ`, {
+      const typResponse = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=main.typ`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +129,7 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
       setContent(typData);
   
       // Set initial PDF src
-      const pdfResponse = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=pdf`, {
+      const pdfResponse = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=main.pdf`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -186,7 +186,7 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   
       if (compileResponse.ok) {
         // Update the PDF src to force reload
-        setPdfSrc(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
+        setPdfSrc(`/api/v1/files/fetch?projectId=${id}&fileName=main.pdf&timestamp=${new Date().getTime()}`);
         if (socket) {
           socket.emit('file-saved');
         }

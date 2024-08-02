@@ -4,7 +4,7 @@ import { FaFile, FaFolder, FaFolderOpen } from 'react-icons/fa';
 
 interface FileExplorerProps {
   projectId: string;
-  onFileSelect: (filePath: string) => void; // Add this line
+  onFileSelect: (filePath: string) => void;
 }
 
 interface FileStructure {

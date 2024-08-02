@@ -38,7 +38,7 @@ const FileName = styled.span`
   margin-left: 5px;
 `;
 
-const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) => { // Update this line
+const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) => {
   const [files, setFiles] = useState<FileStructure>({});
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
 
@@ -74,7 +74,8 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
     });
   };
 
-  const handleFileClick = (filePath: string) => {
+  const handleFileClick = (event: React.MouseEvent, filePath: string) => {
+    event.stopPropagation(); // Prevent the folder from closing
     onFileSelect(filePath); // Call the callback with the selected file path
   };
 
@@ -90,7 +91,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
           const fullPath = parentKey ? `${parentKey}/${key}` : key;
           const isOpen = openFolders.has(fullPath);
           return (
-            <FileItem key={fullPath} onClick={(e) => typeof value !== 'string' ? toggleFolder(e, fullPath) : handleFileClick(fullPath)}>
+            <FileItem key={fullPath} onClick={(e) => typeof value !== 'string' ? toggleFolder(e, fullPath) : handleFileClick(e, fullPath)}>
               {typeof value === 'string' ? (
                 <>
                   <FaFile />

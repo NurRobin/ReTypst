@@ -15,11 +15,11 @@ interface FileStructure {
 const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) => {
   const [files, setFiles] = useState<FileStructure>({});
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
-  
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; isVisible: boolean; target: string | null }>({ x: 0, y: 0, isVisible: false, target: null });
-  
   const [isFilesFetched, setIsFilesFetched] = useState(false);
-  
+  const [editingFile, setEditingFile] = useState<string | null>(null);
+  const [newFileName, setNewFileName] = useState<string>('');
+
   const fetchFiles = async () => {
     const response = await fetch(`/api/v1/projects/files?projectId=${projectId}`);
     if (!response.ok) {
@@ -34,7 +34,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
       console.error('Failed to parse JSON', error);
     }
   };
-  
+
   useEffect(() => {
     if (!isFilesFetched) {
       fetchFiles();
@@ -43,7 +43,6 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
   }, [projectId, isFilesFetched]);
 
   const toggleFolder = (event: React.MouseEvent, folder: string) => {
-    // Prevent event bubbling to parent elements
     event.stopPropagation();
     setOpenFolders((prev) => {
       const newSet = new Set(prev);
@@ -127,10 +126,15 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
     await fetchFiles();
   };
 
-  const handleRename = async () => {
-    const newName = prompt('Enter the new name:', contextMenu.target?.split('/').pop());
-    if (!newName || !contextMenu.target || typeof newName !== 'string') return;
-  
+  const handleRename = (filePath: string) => {
+    handleContextMenuClose();
+    setEditingFile(filePath);
+    setNewFileName(filePath.split('/').pop() || '');
+  };
+
+  const saveRename = async () => {
+    if (!editingFile || !newFileName) return;
+
     const response = await fetch('/api/v1/files/rename', {
       method: 'PATCH',
       headers: {
@@ -138,18 +142,32 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
       },
       body: JSON.stringify({
         projectId,
-        oldPath: contextMenu.target,
-        newPath: contextMenu.target.replace(/[^/]+$/, newName),
+        oldPath: editingFile,
+        newPath: editingFile.replace(/[^/]+$/, newFileName),
       }),
     });
-  
+
     if (!response.ok) {
       console.error('Failed to rename file');
       return;
     }
-  
-    handleContextMenuClose();
+
+    setEditingFile(null);
+    setNewFileName('');
     await fetchFiles();
+  };
+
+  const cancelRename = () => {
+    setEditingFile(null);
+    setNewFileName('');
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      saveRename();
+    } else if (event.key === 'Escape') {
+      cancelRename();
+    }
   };
 
   const renderFiles = (fileStructure: FileStructure, parentKey: string = '', level: number = 0) => {
@@ -170,23 +188,41 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
               handleFileClick(e, fullPath);
             }
           };
-          
+
           const handleContextMenuClick = (e: React.MouseEvent, fullPath: string) => {
             handleContextMenu(e, fullPath);
           };
-          
+
+          const handleDoubleClick = (e: React.MouseEvent, fullPath: string) => {
+            e.stopPropagation();
+            handleRename(fullPath);
+          };
+
           return (
-            <li key={fullPath} className="file-item" onClick={(e) => handleClick(e, fullPath)} onContextMenu={(e) => handleContextMenuClick(e, fullPath)}>
-              {typeof value === 'string' ? (
-                <>
-                  <FaFile className="file-icon" />
-                  <span className="file-name">{key}</span>
-                </>
+            <li key={fullPath} className="file-item" onClick={(e) => handleClick(e, fullPath)} onContextMenu={(e) => handleContextMenuClick(e, fullPath)} onDoubleClick={(e) => handleDoubleClick(e, fullPath)}>
+              {editingFile === fullPath ? (
+                <input
+                  type="text"
+                  value={newFileName}
+                  onChange={(e) => setNewFileName(e.target.value)}
+                  onBlur={saveRename}
+                  onKeyDown={handleKeyDown}
+                  autoFocus
+                />
               ) : (
                 <>
-                  {isOpen ? <FaFolderOpen className="folder-open-icon" /> : <FaFolder className="folder-icon" />}
-                  <span className="file-name">{key}</span>
-                  {isOpen && renderFiles(value, fullPath, level + 1)}
+                  {typeof value === 'string' ? (
+                    <>
+                      <FaFile className="file-icon" />
+                      <span className="file-name">{key}</span>
+                    </>
+                  ) : (
+                    <>
+                      {isOpen ? <FaFolderOpen className="folder-open-icon" /> : <FaFolder className="folder-icon" />}
+                      <span className="file-name">{key}</span>
+                      {isOpen && renderFiles(value, fullPath, level + 1)}
+                    </>
+                  )}
                 </>
               )}
             </li>
@@ -217,7 +253,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
         onClose={handleContextMenuClose}
         onOpen={handleOpen}
         onDelete={handleDelete}
-        onRename={handleRename}
+        onRename={() => handleRename(contextMenu.target || '')}
       />
     </div>
   );

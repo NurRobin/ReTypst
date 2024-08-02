@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export async function POST(req: NextRequest) {
   const { projectId, relativeFilePath } = await req.json();
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const filePath = path.join(process.cwd(), 'documents', projectId, relativeFilePath);
 
   try {
-    await execAsync(`typst compile ${filePath}`);
+    await execFileAsync('typst', ['compile', filePath]);
     return new NextResponse(JSON.stringify({ success: true }), {
       headers: {
         'Content-Type': 'application/json',

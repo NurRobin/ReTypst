@@ -1,82 +1,102 @@
 /* FileExplorer.css */
 
 .container {
-    width: 20%;
-    height: 100vh;
-    overflow-y: scroll;
-    border-right: 1px solid #ccc;
-    padding: 10px;
-  }
-  
-  .file-list {
-    list-style: none;
-    padding-left: 20px;
-    margin: 0;
-    padding: 10px 0 10px 10px; /* Increased padding for better spacing */
-  }
-  
-  .file-list.level-1 {
-    border-left: 1px solid #ddd;
-  }
-  
-  .file-item {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    padding: 8px 12px; /* Increased padding for better spacing */
-    margin-bottom: 5px; /* Added margin for better spacing */
-    border-radius: 4px; /* Rounded corners for a modern look */
-    transition: background-color 0.3s; /* Smooth transition for hover effect */
-  }
-  
-  .file-item:hover {
-    background-color: rgba(0, 0, 0, 0.3); /* Slightly darker background for both light and dark modes */
-  }
-  
-  .file-item.active {
-    background-color: rgba(0, 0, 0, 0.2); /* Highlight active item */
-  }
-  
-  .file-name {
-    margin-left: 10px; /* Increased margin for better spacing */
-    font-size: 14px; /* Appropriate font size for readability */
-    font-family: Arial, sans-serif; /* Clean and modern font */
-  }
-  
-  .folder-icon {
-    color: #0063b2; /* Dark color for folders in light mode */
-  }
-  
+  width: 20%;
+  height: 100vh;
+  overflow-y: scroll;
+  border-right: 1px solid #ccc;
+  padding: 10px;
+}
+
+.file-list {
+  list-style: none;
+  padding-left: 20px;
+  margin: 0;
+  padding: 10px 0 10px 10px; /* Increased padding for better spacing */
+}
+
+.file-list.level-1 {
+  border-left: 1px solid #ddd;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 12px; /* Increased padding for better spacing */
+  margin-bottom: 5px; /* Added margin for better spacing */
+  border-radius: 4px; /* Rounded corners for a modern look */
+  transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.file-item:hover {
+  background-color: rgba(0, 0, 0, 0.3); /* Slightly darker background for both light and dark modes */
+}
+
+.file-item.active {
+  background-color: rgba(0, 0, 0, 0.2); /* Highlight active item */
+}
+
+.file-name {
+  margin-left: 10px; /* Increased margin for better spacing */
+  font-size: 14px; /* Appropriate font size for readability */
+  font-family: Arial, sans-serif; /* Clean and modern font */
+}
+
+.folder-icon {
+  color: #0063b2; /* Dark color for folders in light mode */
+}
+
+.folder-open-icon {
+  color: #0063b2; /* Dark color for folders in light mode */
+}
+
+.file-icon {
+  color: #333; /* Dark color for files in light mode */
+}
+
+@media (prefers-color-scheme: dark) {
+  .folder-icon,
   .folder-open-icon {
-    color: #0063b2; /* Dark color for folders in light mode */
+    color: #008eff; /* White color for folders in dark mode */
   }
-  
+
   .file-icon {
-    color: #333; /* Dark color for files in light mode */
+    color: #fff; /* White color for files in dark mode */
   }
-  
-  @media (prefers-color-scheme: dark) {
-    .folder-icon,
-    .folder-open-icon {
-      color: #008eff; /* White color for folders in dark mode */
-    }
-  
-    .file-icon {
-      color: #fff; /* White color for files in dark mode */
-    }
-  }
-  
-  .upload-button {
-    margin: 10px 0;
-    padding: 8px 12px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .upload-button:hover {
-    background-color: #0056b3;
-  }
+}
+
+.upload-button {
+  margin: 10px 0;
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.upload-button:hover {
+  background-color: #0056b3;
+}
+
+/* New file button styles */
+.new-file-button {
+  margin: 10px 0;
+  padding: 8px 12px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.new-file-button:hover {
+  background-color: #218838;
+}
+
+.new-file-button .file-icon {
+  margin-right: 5px;
+}

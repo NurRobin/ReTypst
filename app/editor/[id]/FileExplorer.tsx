@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FaFile, FaFolder, FaFolderOpen } from 'react-icons/fa';
 import './FileExplorer.css';
 import ContextMenu from './ContextMenu';
+import Modal from './Modal'; // Import the Modal component
 
 interface FileExplorerProps {
   projectId: string;
@@ -19,6 +20,9 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
   const [isFilesFetched, setIsFilesFetched] = useState(false);
   const [editingFile, setEditingFile] = useState<string | null>(null);
   const [newFileName, setNewFileName] = useState<string>('');
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false); // State for delete confirmation dialog
+  const [isNewFileModalOpen, setIsNewFileModalOpen] = useState(false); // State for new file modal
+  const [newFilePath, setNewFilePath] = useState(''); // State for the new file path
 
   const fetchFiles = async () => {
     const response = await fetch(`/api/v1/projects/files?projectId=${projectId}`);
@@ -110,6 +114,10 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
   };
 
   const handleDelete = async () => {
+    setIsDeleteConfirmOpen(true); // Show the confirmation dialog
+  };
+
+  const confirmDelete = async () => {
     if (contextMenu.target) {
       await fetch('/api/v1/files/delete', {
         method: 'DELETE',
@@ -124,6 +132,11 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
     }
     handleContextMenuClose();
     await fetchFiles();
+    setIsDeleteConfirmOpen(false); // Close the confirmation dialog
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteConfirmOpen(false); // Close the confirmation dialog
   };
 
   const handleRename = (filePath: string) => {
@@ -168,6 +181,31 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
     } else if (event.key === 'Escape') {
       cancelRename();
     }
+  };
+
+  const handleNewFile = async () => {
+    if (!newFilePath) return;
+
+    const response = await fetch('/api/v1/files/create/file', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId,
+        relativePath: newFilePath,
+        content: '', // Empty file
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to create new file');
+      return;
+    }
+
+    setNewFilePath('');
+    setIsNewFileModalOpen(false);
+    await fetchFiles();
   };
 
   const renderFiles = (fileStructure: FileStructure, parentKey: string = '', level: number = 0) => {
@@ -234,17 +272,24 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
 
   return (
     <div className="container">
-      <button className="upload-button">
-        <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
-          Upload File
-        </label>
-        <input
-          id="file-upload"
-          type="file"
-          style={{ display: 'none' }}
-          onChange={handleFileUpload}
-        />
-      </button>
+      <h2>Files</h2>
+      <div className="divider" />
+      <div className="buttons">
+        <button className="upload-button">
+          <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
+            Upload File
+          </label>
+          <input
+            id="file-upload"
+            type="file"
+            style={{ display: 'none' }}
+            onChange={handleFileUpload}
+          />
+        </button>
+        <button className="new-file-button" onClick={() => setIsNewFileModalOpen(true)}>
+          <FaFile className="file-icon" />
+        </button>
+      </div>
       {renderFiles(files)}
       <ContextMenu
         x={contextMenu.x}
@@ -254,6 +299,29 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
         onOpen={handleOpen}
         onDelete={handleDelete}
         onRename={() => handleRename(contextMenu.target || '')}
+      />
+      <Modal
+        isOpen={isDeleteConfirmOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        message="Are you sure you want to delete this file?"
+      />
+      <Modal
+        isOpen={isNewFileModalOpen}
+        onClose={() => setIsNewFileModalOpen(false)}
+        onConfirm={handleNewFile}
+        message={
+          <>
+            <label>
+              Enter new file name:
+              <input
+                type="text"
+                value={newFilePath}
+                onChange={(e) => setNewFilePath(e.target.value)}
+              />
+            </label>
+          </>
+        }
       />
     </div>
   );

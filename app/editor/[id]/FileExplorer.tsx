@@ -22,20 +22,54 @@ const Container = styled.div`
 const FileList = styled.ul<{ $level: number }>`
   list-style: none;
   padding-left: 20px;
-  border-left: ${({ $level }) => ($level > 0 ? `1px solid #ccc` : 'none')};
+  border-left: ${({ $level }) => ($level > 0 ? `1px solid #ddd` : 'none')};
   margin: 0;
-  padding: 5px 0 5px 10px;
+  padding: 10px 0 10px 10px; /* Increased padding for better spacing */
 `;
 
 const FileItem = styled.li`
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 3px 0;
+  padding: 8px 12px; /* Increased padding for better spacing */
+  margin-bottom: 5px; /* Added margin for better spacing */
+  border-radius: 4px; /* Rounded corners for a modern look */
+  transition: background-color 0.3s; /* Smooth transition for hover effect */
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.3); /* Slightly darker background for both light and dark modes */
+  }
+
+  &.active {
+    background-color: rgba(0, 0, 0, 0.2); /* Highlight active item */
+  }
 `;
 
 const FileName = styled.span`
-  margin-left: 5px;
+  margin-left: 10px; /* Increased margin for better spacing */
+  font-size: 14px; /* Appropriate font size for readability */
+  font-family: Arial, sans-serif; /* Clean and modern font */
+`;
+
+const FolderIcon = styled(FaFolder)`
+  @media (prefers-color-scheme: dark) {
+    color: #008eff; /* White color for folders in dark mode */
+  }
+  color: #0063b2; /* Dark color for folders in light mode */
+`;
+
+const FolderOpenIcon = styled(FaFolderOpen)`
+  @media (prefers-color-scheme: dark) {
+    color: #008eff; /* White color for folders in dark mode */
+  }
+  color: #0063b2; /* Dark color for folders in light mode */
+`;
+
+const FileIcon = styled(FaFile)`
+  @media (prefers-color-scheme: dark) {
+    color: #fff; /* White color for files in dark mode */
+  }
+  color: #333; /* Dark color for files in light mode */
 `;
 
 const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) => {
@@ -94,12 +128,12 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
             <FileItem key={fullPath} onClick={(e) => typeof value !== 'string' ? toggleFolder(e, fullPath) : handleFileClick(e, fullPath)}>
               {typeof value === 'string' ? (
                 <>
-                  <FaFile />
+                  <FileIcon />
                   <FileName>{key}</FileName>
                 </>
               ) : (
                 <>
-                  {isOpen ? <FaFolderOpen /> : <FaFolder />}
+                  {isOpen ? <FolderOpenIcon /> : <FolderIcon />}
                   <FileName>{key}</FileName>
                   {isOpen && renderFiles(value, fullPath, level + 1)}
                 </>

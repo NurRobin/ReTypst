@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
 import { FaFile, FaFolder, FaFolderOpen } from 'react-icons/fa';
+import './FileExplorer.css';
 
 interface FileExplorerProps {
   projectId: string;
@@ -10,82 +10,6 @@ interface FileExplorerProps {
 interface FileStructure {
   [key: string]: string | FileStructure;
 }
-
-const Container = styled.div`
-  width: 20%;
-  height: 100vh;
-  overflow-y: scroll;
-  border-right: 1px solid #ccc;
-  padding: 10px;
-`;
-
-const FileList = styled.ul<{ $level: number }>`
-  list-style: none;
-  padding-left: 20px;
-  border-left: ${({ $level }) => ($level > 0 ? `1px solid #ddd` : 'none')};
-  margin: 0;
-  padding: 10px 0 10px 10px; /* Increased padding for better spacing */
-`;
-
-const FileItem = styled.li`
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 8px 12px; /* Increased padding for better spacing */
-  margin-bottom: 5px; /* Added margin for better spacing */
-  border-radius: 4px; /* Rounded corners for a modern look */
-  transition: background-color 0.3s; /* Smooth transition for hover effect */
-
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.3); /* Slightly darker background for both light and dark modes */
-  }
-
-  &.active {
-    background-color: rgba(0, 0, 0, 0.2); /* Highlight active item */
-  }
-`;
-
-const FileName = styled.span`
-  margin-left: 10px; /* Increased margin for better spacing */
-  font-size: 14px; /* Appropriate font size for readability */
-  font-family: Arial, sans-serif; /* Clean and modern font */
-`;
-
-const FolderIcon = styled(FaFolder)`
-  @media (prefers-color-scheme: dark) {
-    color: #008eff; /* White color for folders in dark mode */
-  }
-  color: #0063b2; /* Dark color for folders in light mode */
-`;
-
-const FolderOpenIcon = styled(FaFolderOpen)`
-  @media (prefers-color-scheme: dark) {
-    color: #008eff; /* White color for folders in dark mode */
-  }
-  color: #0063b2; /* Dark color for folders in light mode */
-`;
-
-const FileIcon = styled(FaFile)`
-  @media (prefers-color-scheme: dark) {
-    color: #fff; /* White color for files in dark mode */
-  }
-  color: #333; /* Dark color for files in light mode */
-`;
-
-const UploadButton = styled.button`
-  margin: 10px 0;
-  padding: 8px 12px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #0056b3;
-  }
-`;
 
 const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) => {
   const [files, setFiles] = useState<FileStructure>({});
@@ -167,34 +91,34 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
     const sortedEntries = [...folders, ...files];
 
     return (
-      <FileList $level={level}>
+      <ul className={`file-list ${level > 0 ? 'level-1' : ''}`}>
         {sortedEntries.map(([key, value]) => {
           const fullPath = parentKey ? `${parentKey}/${key}` : key;
           const isOpen = openFolders.has(fullPath);
           return (
-            <FileItem key={fullPath} onClick={(e) => typeof value !== 'string' ? toggleFolder(e, fullPath) : handleFileClick(e, fullPath)}>
+            <li key={fullPath} className="file-item" onClick={(e) => typeof value !== 'string' ? toggleFolder(e, fullPath) : handleFileClick(e, fullPath)}>
               {typeof value === 'string' ? (
                 <>
-                  <FileIcon />
-                  <FileName>{key}</FileName>
+                  <FaFile className="file-icon" />
+                  <span className="file-name">{key}</span>
                 </>
               ) : (
                 <>
-                  {isOpen ? <FolderOpenIcon /> : <FolderIcon />}
-                  <FileName>{key}</FileName>
+                  {isOpen ? <FaFolderOpen className="folder-open-icon" /> : <FaFolder className="folder-icon" />}
+                  <span className="file-name">{key}</span>
                   {isOpen && renderFiles(value, fullPath, level + 1)}
                 </>
               )}
-            </FileItem>
+            </li>
           );
         })}
-      </FileList>
+      </ul>
     );
   };
 
   return (
-    <Container>
-      <UploadButton>
+    <div className="container">
+      <button className="upload-button">
         <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
           Upload File
         </label>
@@ -204,9 +128,9 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
           style={{ display: 'none' }}
           onChange={handleFileUpload}
         />
-      </UploadButton>
+      </button>
       {renderFiles(files)}
-    </Container>
+    </div>
   );
 };
 

@@ -13,6 +13,8 @@ interface FileStructure {
   [key: string]: string | FileStructure;
 }
 
+const ROOT_FILES = ['main.typ', 'main.pdf'];
+
 const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) => {
   const [files, setFiles] = useState<FileStructure>({});
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
@@ -100,6 +102,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
   };
 
   const handleContextMenu = (event: React.MouseEvent, target: string) => {
+    if (ROOT_FILES.includes(target.split('/').pop() || '')) return; // Prevent context menu for root files
     event.preventDefault();
     event.stopPropagation();
     setContextMenu({ x: event.clientX, y: event.clientY, isVisible: true, target });
@@ -117,7 +120,9 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
   };
 
   const handleDelete = async () => {
-    setIsDeleteConfirmOpen(true); // Show the confirmation dialog
+    if (contextMenu.target && !ROOT_FILES.includes(contextMenu.target.split('/').pop() || '')) {
+      setIsDeleteConfirmOpen(true); // Show the confirmation dialog
+    }
   };
 
   const confirmDelete = async () => {
@@ -143,6 +148,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
   };
 
   const handleRename = (filePath: string) => {
+    if (ROOT_FILES.includes(filePath.split('/').pop() || '')) return; // Prevent rename for root files
     handleContextMenuClose();
     setEditingFile(filePath);
     setNewFileName(filePath.split('/').pop() || '');
@@ -236,6 +242,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
   };
 
   const handleDragStart = (event: React.DragEvent, filePath: string) => {
+    if (ROOT_FILES.includes(filePath.split('/').pop() || '')) return; // Prevent drag for root files
     event.stopPropagation();
     setDraggedItem(filePath);
   };

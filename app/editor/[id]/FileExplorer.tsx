@@ -72,26 +72,41 @@ const FileIcon = styled(FaFile)`
   color: #333; /* Dark color for files in light mode */
 `;
 
+const UploadButton = styled.button`
+  margin: 10px 0;
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+`;
+
 const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) => {
   const [files, setFiles] = useState<FileStructure>({});
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    const fetchFiles = async () => {
-      const response = await fetch(`/api/v1/projects/files?projectId=${projectId}`);
-      if (!response.ok) {
-        console.error('Failed to fetch files');
-        return;
-      }
-      const text = await response.text();
-      try {
-        const data = JSON.parse(text);
-        setFiles(data.files);
-      } catch (error) {
-        console.error('Failed to parse JSON', error);
-      }
-    };
+  const fetchFiles = async () => {
+    const response = await fetch(`/api/v1/projects/files?projectId=${projectId}`);
+    if (!response.ok) {
+      console.error('Failed to fetch files');
+      return;
+    }
+    const text = await response.text();
+    try {
+      const data = JSON.parse(text);
+      setFiles(data.files || {});
+    } catch (error) {
+      console.error('Failed to parse JSON', error);
+    }
+  };
 
+  useEffect(() => {
     fetchFiles();
   }, [projectId]);
 
@@ -113,8 +128,40 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
     onFileSelect(filePath); // Call the callback with the selected file path
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const content = reader.result as string;
+      const relativePath = file.name;
+
+      const response = await fetch('/api/v1/files/create/file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId,
+          relativePath,
+          content,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to upload file');
+        return;
+      }
+
+      await fetchFiles(); // Refresh the file explorer after a successful upload
+    };
+
+    reader.readAsText(file);
+  };
+
   const renderFiles = (fileStructure: FileStructure, parentKey: string = '', level: number = 0) => {
-    const entries = Object.entries(fileStructure);
+    const entries = Object.entries(fileStructure || {});
     const folders = entries.filter(([_, value]) => typeof value !== 'string').sort();
     const files = entries.filter(([_, value]) => typeof value === 'string').sort();
     const sortedEntries = [...folders, ...files];
@@ -145,7 +192,22 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectId, onFileSelect }) 
     );
   };
 
-  return <Container>{renderFiles(files)}</Container>;
+  return (
+    <Container>
+      <UploadButton>
+        <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
+          Upload File
+        </label>
+        <input
+          id="file-upload"
+          type="file"
+          style={{ display: 'none' }}
+          onChange={handleFileUpload}
+        />
+      </UploadButton>
+      {renderFiles(files)}
+    </Container>
+  );
 };
 
 export default FileExplorer;

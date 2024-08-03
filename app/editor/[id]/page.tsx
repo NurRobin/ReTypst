@@ -129,6 +129,7 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
       });
       const typData = await typResponse.text();
       setContent(typData);
+      setOpenFile('main.typ');
   
       // Set initial PDF src
       const pdfResponse = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=main.pdf`, {
@@ -168,6 +169,7 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   };
 
   const saveFile = async () => {
+    console.log('Saving file...');
     if (!openFile) {
       return;
     }

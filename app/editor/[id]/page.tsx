@@ -47,10 +47,12 @@ const IFrame = styled.iframe`
 const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   const { id } = params;
   const [content, setContent] = useState<string>('');
+  const [openFile, setOpenFile] = useState<string | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [pdfSrc, setPdfSrc] = useState<string>('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectListLoaded, setProjectListLoaded] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -106,7 +108,7 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
       });
 
       socketInstance.on('file-saved', () => {
-        setPdfSrc(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
+        setPdfSrc(`/api/v1/files/fetch?projectId=${id}&fileName=main.pdf&timestamp=${new Date().getTime()}`);
       });
 
       return () => {
@@ -119,7 +121,7 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const typResponse = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=typ`, {
+      const typResponse = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=main.typ`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -127,9 +129,10 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
       });
       const typData = await typResponse.text();
       setContent(typData);
+      setOpenFile('main.typ');
   
       // Set initial PDF src
-      const pdfResponse = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=pdf`, {
+      const pdfResponse = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=main.pdf`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -166,15 +169,20 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   };
 
   const saveFile = async () => {
+    console.log('Saving file...');
+    if (!openFile) {
+      return;
+    }
+    const savedFileType = openFile.split('.').pop();
     const saveResponse = await fetch('/api/v1/files/save', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ projectId: id, relativeFilePath: './main.typ', content: content }),
+      body: JSON.stringify({ projectId: id, relativeFilePath: openFile, content: content }),
     });
   
-    if (saveResponse.ok) {
+    if (saveResponse.ok && savedFileType === 'typ') {
       // Trigger compilation
       const compileResponse = await fetch('/api/v1/typst/compile', {
         method: 'POST',
@@ -186,7 +194,7 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
   
       if (compileResponse.ok) {
         // Update the PDF src to force reload
-        setPdfSrc(`/api/v1/files/fetch?projectId=${id}&fileName=main&type=pdf&timestamp=${new Date().getTime()}`);
+        setPdfSrc(`/api/v1/files/fetch?projectId=${id}&fileName=main.pdf&timestamp=${new Date().getTime()}`);
         if (socket) {
           socket.emit('file-saved');
         }
@@ -202,11 +210,33 @@ const EditorPage: React.FC<EditorPageProps> = ({ params }) => {
     window.history.back();
   };
 
+  const handleFileSelect = async (filePath: string) => {
+    setError(null);
+    const response = await fetch(`/api/v1/files/fetch?projectId=${id}&fileName=${filePath}`);
+    if (!response.ok) {
+      setError('Failed to fetch file');
+      return;
+    }
+    if (filePath.endsWith('.pdf')) {
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setPdfSrc(url);
+    } else {
+      try {
+        const text = await response.text();
+        setContent(text);
+        setOpenFile(filePath);
+      } catch (error) {
+        setError('Failed to parse file');
+      }
+    }
+};
+
   return (
     <EditorContainer>
       <Toolbar onSave={saveFile} onBack={handleBack} />
       <MainContent>
-        <FileExplorer projectId={id} />
+        <FileExplorer projectId={id} onFileSelect={handleFileSelect} />
         <TextArea
           value={content}
           onChange={handleChange}

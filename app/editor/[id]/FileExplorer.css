@@ -4,6 +4,7 @@
   width: 20%;
   height: 100vh;
   overflow-y: scroll;
+  /* Distance to border */
   border-right: 1px solid #ccc;
   padding: 10px;
 }
@@ -17,6 +18,7 @@
 
 .file-list.level-1 {
   border-left: 1px solid #ddd;
+  
 }
 
 .file-item {
@@ -41,6 +43,7 @@
   margin-left: 10px; /* Increased margin for better spacing */
   font-size: 14px; /* Appropriate font size for readability */
   font-family: Arial, sans-serif; /* Clean and modern font */
+  padding-right: 10px; /* Added padding for better spacing */
 }
 
 .folder-icon {

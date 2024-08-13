@@ -1,0 +1,43 @@
+name: Version Bump
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Determine version bump
+        id: version
+        run: |
+          if git log -1 --pretty=%B | grep -i 'breaking\|major'; then
+            echo "::set-output name=version_type::major"
+          elif git log -1 --pretty=%B | grep -i 'feat\|refactor\|perf'; then
+            echo "::set-output name=version_type::minor"
+          elif git log -1 --pretty=%B | grep -i 'fix\|chore\|build\|bump'; then
+            echo "::set-output name=version_type::patch"
+          else
+            echo "No matching commit message found. Skipping version bump."
+            exit 0
+          fi
+
+      - name: Bump version and push tag
+        run: |
+          npm version ${{ steps.version.outputs.version_type }} -m "ci: bump version to %s"
+          git push --follow-tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

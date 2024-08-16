@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Enhanced script to check both branch naming conventions and commit message formats.
+
+# Configuration
+valid_branch_types="feat|fix|refactor|chore|docs|test"
+valid_commit_types="feat|fix|refactor|chore|docs|test|breaking"
+
+# Branch Naming Convention
+branch_name=$(git rev-parse --abbrev-ref HEAD)
+branch_regex="^($valid_branch_types)\/[0-9]+-[a-z0-9\-]+$"
+
+if ! echo "$branch_name" | grep -qE "$branch_regex"; then
+    echo "Error: Branch name '$branch_name' does not follow the convention:"
+    echo "<type>/<Issue-number>-<short-description>"
+    echo "Valid types: $valid_branch_types"
+    echo "Example: feat/123-add-login-feature"
+    echo "Please rename your branch before committing."
+    echo "you can use the following command to rename your branch:"
+    echo "git branch -m <new-branch-name>"
+    echo "Aborting commit..."
+    exit 1
+fi
+
+# Run lint-staged
+echo "Running lint-staged..."
+npx lint-staged
+
+# If all checks pass, allow the commit to proceed
+exit 0

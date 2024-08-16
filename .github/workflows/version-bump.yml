@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '14'
+          node-version: '20'
 
       - name: Skip if the commit is made by GitHub Actions bot
         id: check-actor
@@ -36,6 +36,7 @@ jobs:
         id: determine-version
         run: |
           commit_message=$(git log -1 --pretty=%B)
+          echo "Commit message: $commit_message" # Added for debugging purposes
           if echo "$commit_message" | grep -iqE 'breaking|major'; then
             echo "version_type=major" >> $GITHUB_ENV
           elif echo "$commit_message" | grep -iqE 'feat|refactor|perf'; then
@@ -45,6 +46,7 @@ jobs:
           else
             echo "No matching commit message found. Skipping version bump."
             exit 0
+          fi
 
       - name: Commit changes if package-lock.json was modified
         run: |

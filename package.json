@@ -1,1 +1,48 @@
-ewogICJuYW1lIjogInJldHlwc3QiLAogICJ2ZXJzaW9uIjogIjAuNC4wIiwKICAicHJpdmF0ZSI6IGZhbHNlLAogICJzY3JpcHRzIjogewogICAgImRldiI6ICJjcm9zcy1lbnYgTk9ERV9FTlY9ZGV2ZWxvcG1lbnQgbm9kZSBzZXJ2ZXIuanMiLAogICAgImJ1aWxkIjogIm5leHQgYnVpbGQiLAogICAgInN0YXJ0IjogImNyb3NzLWVudiBOT0RFX0VOVj1wcm9kdWN0aW9uIG5vZGUgc2VydmVyLmpzIiwKICAgICJsaW50IjogIm5leHQgbGludCIsCiAgICAicHJlcGFyZSI6ICJodXNreSBpbnN0YWxsIgogIH0sCiAgImRlcGVuZGVuY2llcyI6IHsKICAgICJAZm9udHNvdXJjZS9pbnRlciI6ICJeNS4wLjIwIiwKICAgICJAdHlwZXMvcmVhY3Qtcm91dGVyLWRvbSI6ICJeNS4zLjMiLAogICAgIkB0eXBlcy9zdHlsZWQtY29tcG9uZW50cyI6ICJeNS4xLjM0IiwKICAgICJhY2UtYnVpbGRzIjogIl4xLjM1LjQiLAogICAgImF1dG9wcmVmaXhlciI6ICJeMTAuNC4yMCIsCiAgICAiY2hva2lkYXIiOiAiXjMuNi4wIiwKICAgICJtdWx0ZXIiOiAiXjEuNC41LWx0cy4xIiwKICAgICJuZXh0IjogIl4xNC4yLjUiLAogICAgIm5leHQtY29ubmVjdCI6ICJeMS4wLjAiLAogICAgInJlYWN0IjogIl4xOCIsCiAgICAicmVhY3QtYWNlIjogIl4xMi4wLjAiLAogICAgInJlYWN0LWRvbSI6ICJeMTgiLAogICAgInJlYWN0LWljb25zIjogIl41LjMuMCIsCiAgICAicmVhY3Qtcm91dGVyLWRvbSI6ICJeNi4yNi4wIiwKICAgICJyZXR5cHN0IjogImZpbGU6IiwKICAgICJzb2NrZXQuaW8iOiAiXjQuNy41IiwKICAgICJzb2NrZXQuaW8tY2xpZW50IjogIl40LjcuNSIsCiAgICAic3R5bGVkLWNvbXBvbmVudHMiOiAiXjYuMS4xMiIsCiAgICAieS13ZWJydGMiOiAiXjEwLjMuMCIsCiAgICAieS13ZWJzb2NrZXQiOiAiXjIuMC40IiwKICAgICJ5anMiOiAiXjEzLjYuMTgiCiAgfSwKICAiZGV2RGVwZW5kZW5jaWVzIjogewogICAgIkB0eXBlcy9tdWx0ZXIiOiAiXjEuNC4xMSIsCiAgICAiQHR5cGVzL25vZGUiOiAiXjIyIiwKICAgICJAdHlwZXMvcmVhY3QiOiAiXjE4IiwKICAgICJAdHlwZXMvcmVhY3QtZG9tIjogIl4xOCIsCiAgICAiY3Jvc3MtZW52IjogIl43LjAuMyIsCiAgICAiZXNsaW50LWNvbmZpZy1uZXh0IjogIjE0LjIuNSIsCiAgICAiaHVza3kiOiAiXjguMC4wIiwKICAgICJsaW50LXN0YWdlZCI6ICJeMTUuMi45IiwKICAgICJwb3N0Y3NzIjogIl44LjQuNDEiLAogICAgInRhaWx3aW5kY3NzIjogIl4zLjQuMTAiLAogICAgInR5cGVzY3JpcHQiOiAiXjUiCiAgfQp9
+{
+  "name": "retypst",
+  "version": "0.4.0",
+  "private": false,
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development node server.js",
+    "build": "next build",
+    "start": "cross-env NODE_ENV=production node server.js",
+    "lint": "next lint",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.0.20",
+    "@types/react-router-dom": "^5.3.3",
+    "@types/styled-components": "^5.1.34",
+    "ace-builds": "^1.35.4",
+    "autoprefixer": "^10.4.20",
+    "chokidar": "^3.6.0",
+    "multer": "^1.4.5-lts.1",
+    "next": "^14.2.5",
+    "next-connect": "^1.0.0",
+    "react": "^18",
+    "react-ace": "^12.0.0",
+    "react-dom": "^18",
+    "react-icons": "^5.3.0",
+    "react-router-dom": "^6.26.0",
+    "retypst": "file:",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
+    "styled-components": "^6.1.12",
+    "y-webrtc": "^10.3.0",
+    "y-websocket": "^2.0.4",
+    "yjs": "^13.6.18"
+  },
+  "devDependencies": {
+    "@types/multer": "^1.4.11",
+    "@types/node": "^22",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "cross-env": "^7.0.3",
+    "eslint-config-next": "14.2.5",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.2.9",
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5"
+  }
+}

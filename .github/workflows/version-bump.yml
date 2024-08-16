@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   version-bump:
     runs-on: ubuntu-latest
@@ -18,33 +21,42 @@ jobs:
         with:
           node-version: '14'
 
+      - name: Skip if the commit is made by GitHub Actions bot
+        id: check-actor
+        run: |
+          if [ "${{ github.actor }}" = "github-actions" ]; then
+            echo "This commit was made by the GitHub Actions bot. Skipping the workflow."
+            exit 0
+          fi
+
       - name: Install dependencies
         run: npm install
 
       - name: Determine version bump
-        id: version
+        id: determine-version
         run: |
-          if git log -1 --pretty=%B | grep -i 'breaking\|major'; then
+          commit_message=$(git log -1 --pretty=%B)
+          if echo "$commit_message" | grep -iqE 'breaking|major'; then
             echo "version_type=major" >> $GITHUB_ENV
-          elif git log -1 --pretty=%B | grep -i 'feat\|refactor\|perf'; then
+          elif echo "$commit_message" | grep -iqE 'feat|refactor|perf'; then
             echo "version_type=minor" >> $GITHUB_ENV
-          elif git log -1 --pretty=%B | grep -i 'fix\|chore\|build\|bump'; then
+          elif echo "$commit_message" | grep -iqE 'fix|chore|build|bump'; then
             echo "version_type=patch" >> $GITHUB_ENV
           else
             echo "No matching commit message found. Skipping version bump."
             exit 0
-          fi
 
       - name: Commit changes if package-lock.json was modified
         run: |
           if [ -n "$(git status --porcelain)" ]; then
-            git config --global user.email "you@example.com"
-            git config --global user.name "Your Name"
+            git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+            git config --global user.name "${{ github.actor }}"
             git add package-lock.json
             git commit -m "chore: update package-lock.json"
           fi
 
       - name: Bump version and push tag
+        if: env.version_type != ''
         run: |
           npm version ${{ env.version_type }} -m "ci: bump version to %s"
           git push --follow-tags

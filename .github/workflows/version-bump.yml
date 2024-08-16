@@ -25,19 +25,28 @@ jobs:
         id: version
         run: |
           if git log -1 --pretty=%B | grep -i 'breaking\|major'; then
-            echo "::set-output name=version_type::major"
+            echo "version_type=major" >> $GITHUB_ENV
           elif git log -1 --pretty=%B | grep -i 'feat\|refactor\|perf'; then
-            echo "::set-output name=version_type::minor"
+            echo "version_type=minor" >> $GITHUB_ENV
           elif git log -1 --pretty=%B | grep -i 'fix\|chore\|build\|bump'; then
-            echo "::set-output name=version_type::patch"
+            echo "version_type=patch" >> $GITHUB_ENV
           else
             echo "No matching commit message found. Skipping version bump."
             exit 0
           fi
 
+      - name: Commit changes if package-lock.json was modified
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config --global user.email "you@example.com"
+            git config --global user.name "Your Name"
+            git add package-lock.json
+            git commit -m "chore: update package-lock.json"
+          fi
+
       - name: Bump version and push tag
         run: |
-          npm version ${{ steps.version.outputs.version_type }} -m "ci: bump version to %s"
+          npm version ${{ env.version_type }} -m "ci: bump version to %s"
           git push --follow-tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

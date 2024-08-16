@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Enhanced script to check commit message format.
+
+# Configuration
+valid_commit_types="feat|fix|refactor|chore|docs|test|breaking"
+
+# Commit Message Format
+readonly COMMIT_MSG_FILE=$1
+commit_message=$(cat "${COMMIT_MSG_FILE}")
+echo "Commit message argument passed: $commit_message"
+commit_regex="^($valid_commit_types): .+$"
+
+if [ -z "$commit_message" ]; then
+    echo "Error: Commit message cannot be empty."
+    exit 1
+fi
+
+if ! echo "$commit_message" | grep -qE "$commit_regex"; then
+    echo "Error: Commit message must be in the format 'COMMITTYPE: message'"
+    echo "Valid types: $valid_commit_types"
+    echo "Example: 'feat: add new feature'"
+    exit 1
+fi
+
+# If all checks pass, allow the commit to proceed
+exit 0
